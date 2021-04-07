@@ -78,9 +78,8 @@ public class BtcPricingService {
 
     private double getMaxPrice() {
         return this.btcPriceMap
-                .entrySet()
+                .values()
                 .stream()
-                .map(Map.Entry::getValue)
                 .sorted(Comparator.comparing(Price::getPriceValue))
                 .mapToDouble(Price::getPriceValue)
                 .max()
@@ -96,7 +95,7 @@ public class BtcPricingService {
                 .stream()
                 .sorted((o1, o2) -> o2.getKey().compareTo(o1.getKey()))
                 .limit(10)
-                .map(o1 -> o1.getValue())
+                .map(Map.Entry::getValue)
                 .collect(Collectors.toList());
     }
 
