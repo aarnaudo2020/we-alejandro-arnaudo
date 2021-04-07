@@ -29,9 +29,9 @@ public class Price {
     private String curr2;
 
     @JsonValue()
-    public Map getPrice() {
+    public Map<String,Object> getPrice() {
         Map price = new HashMap();
-        price.put("time_stamp",timestamp);
+        price.put("timestamp",timestamp);
         price.put("price",this.priceValue);
         price.put("currency",this.curr2);
         return price;

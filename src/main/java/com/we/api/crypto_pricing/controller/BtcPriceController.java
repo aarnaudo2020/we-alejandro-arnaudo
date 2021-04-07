@@ -1,7 +1,10 @@
 package com.we.api.crypto_pricing.controller;
 
 import com.we.api.crypto_pricing.entity.Price;
+import com.we.api.crypto_pricing.entity.dto.BtcPriceStatisticsDto;
 import com.we.api.crypto_pricing.service.BtcPricingService;
+import com.we.api.crypto_pricing.utils.DateTimeUtils;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -9,6 +12,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Map;
@@ -39,7 +43,11 @@ public class BtcPriceController {
     }
 
     @GetMapping(value="/btc/usd/{timestamp}")
-    public ResponseEntity<Optional<Price>> getPriceOnTime(@PathVariable String timestamp){
+    public ResponseEntity<Optional<Price>> getPriceByTime(@PathVariable String timestamp){
+        if(!DateTimeUtils.isValid(timestamp)){
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "Invalid date");
+        }
         Optional<Price> price = btcPricingService.getPriceByTimeStamp(timestamp);
         if(price.isPresent()){
             return ResponseEntity.ok(price);
@@ -48,15 +56,31 @@ public class BtcPriceController {
     }
 
     @GetMapping(value= "btc/usd/statistics")
-    public ResponseEntity<BtcPriceStatisticsDto> getStatistics(@RequestParam ("from") String from,@RequestParam ("to") String to){
+    public ResponseEntity<BtcPriceStatisticsDto> getStatistics(@RequestParam ("from") String from, @RequestParam ("to") String to){
         if(from.isEmpty() || to.isEmpty()){
-            return ResponseEntity.badRequest().build();
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "From or To parameter are not present");
         }
-        return ResponseEntity.ok(btcPricingService.getStatisticsDto().get());
+        if(!DateTimeUtils.isValid(from)){
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "Invalid date from");
+        }
+        if(!DateTimeUtils.isValid(to)){
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "Invalid date to");
+        }
+        if(from.compareTo(to) > 0){
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "From must be less than to");
+        }
+
+        Optional<BtcPriceStatisticsDto> statsDto = btcPricingService.getStatisticsDto(from,to);
+
+        return statsDto.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @DeleteMapping(value="/btc")
-    public ResponseEntity flushAllPrices(){
+    public ResponseEntity<String> flushAllPrices(){
         btcPricingService.flushPrices();
         return ResponseEntity.ok("Ok");
     }

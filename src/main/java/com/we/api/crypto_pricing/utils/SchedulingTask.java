@@ -21,7 +21,6 @@ public class SchedulingTask {
 
     @Scheduled(fixedRate = DELAY)
     public void monitoringPrice() {
-        log.info("Pulling new price ");
         btcPricingService.pullNewPrice();
     }
 }
