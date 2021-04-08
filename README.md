@@ -3,7 +3,7 @@
 #### API REST
 
 ## Herramientas de desarrollo
-* SpringBoot 2.4.4
+* Spring Boot 2.4.4
 * SDK Java 1.8
 * Xubuntu 20.04
 * Intellij IDEA 2021.1
